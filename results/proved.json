@@ -1,0 +1,77 @@
+{
+  "proved_at": "2026-09-20T11:41:56.590Z",
+  "network": "genlayer testnet asimov",
+  "contract": "0x137129dEB470FfC721548F48B537200eB605D55e",
+  "program": "0",
+  "source": "https://raw.githubusercontent.com/JspIIV/merit/master/docs/members/contributors.txt",
+  "requirement": "The claiming address is listed as an accepted contributor on the page.",
+  "listed": {
+    "program_id": "0",
+    "address": "0x80519c53f10d731e4ff83a7d9acd69cf98da6258",
+    "decision": "QUALIFIED",
+    "status": "ISSUED",
+    "reason": "The page lists this exact address as an accepted contributor",
+    "quote": "0x80519c53f10d731e4ff83a7d9acd69cf98da6258 core, merged 12 pull requests",
+    "at": "2026-09-20T11:12:48+00:00"
+  },
+  "not_listed": {
+    "program_id": "0",
+    "address": "0x0b57877ec84d96b672cd47d8ea4424283fdb9f6c",
+    "decision": "NOT_QUALIFIED",
+    "status": "DENIED",
+    "reason": "The exact address 0x0b57877ec84d96b672cd47d8ea4424283fdb9f6c is not listed on the page of accepted contributors.",
+    "quote": "",
+    "at": "2026-09-20T11:41:01+00:00"
+  },
+  "has_pass": {
+    "listed": {
+      "exists": true,
+      "program_id": "0",
+      "address": "0x80519c53f10d731e4ff83a7d9acd69cf98da6258",
+      "has_pass": true,
+      "status": "ISSUED"
+    },
+    "not_listed": {
+      "exists": true,
+      "program_id": "0",
+      "address": "0x0b57877ec84d96b672cd47d8ea4424283fdb9f6c",
+      "has_pass": false,
+      "status": "DENIED"
+    }
+  },
+  "size": {
+    "programs": 1,
+    "issued": 1,
+    "denied": 1
+  },
+  "checks": [
+    {
+      "label": "a program was opened",
+      "ok": true
+    },
+    {
+      "label": "the listed address is QUALIFIED",
+      "ok": true
+    },
+    {
+      "label": "and its pass is ISSUED",
+      "ok": true
+    },
+    {
+      "label": "the unlisted address is NOT_QUALIFIED",
+      "ok": true
+    },
+    {
+      "label": "and it is DENIED, no pass",
+      "ok": true
+    },
+    {
+      "label": "has_pass gates true only for the listed address",
+      "ok": true
+    },
+    {
+      "label": "the program counts one issued and one denied",
+      "ok": true
+    }
+  ]
+}
