@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Merit — a pass you earn, not one you claim</title>
+<style>
+  :root{ --bg:#0c0b12; --card:#161320; --line:#282237; --ink:#f1eef8; --dim:#a99fc0; --faint:#746a8a;
+    --accent:#9b7bff; --grn:#57d38c; --red:#ff6b6b; --amber:#f5b301; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 70px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .brand{font-weight:800;font-size:20px}.brand i{color:var(--accent);font-style:normal}
+  .net{font:12px ui-monospace,monospace;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+  button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);background:#1d1830;color:var(--ink);padding:9px 14px}
+  button.primary{background:var(--accent);color:#0e0820;border-color:transparent;font-weight:700}
+  button:disabled{opacity:.5;cursor:default}
+  h1{font-size:27px;margin:26px 0 6px;letter-spacing:-.3px}
+  .lead{color:var(--dim);max-width:690px}
+  section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:16px 0}
+  label{display:block;font:12px ui-monospace,monospace;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin:12px 0 5px}
+  input,textarea{width:100%;background:#0b0912;border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:10px 11px;font:inherit}
+  textarea{min-height:64px;resize:vertical}
+  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+  .muted{color:var(--faint);font-size:13px}
+  .status{margin-top:10px;color:var(--dim);font-size:14px;min-height:18px}
+  h2{font-size:14px;color:var(--dim);font-family:ui-monospace,monospace;letter-spacing:1px;text-transform:uppercase;margin:28px 0 6px}
+  .card{border-top:1px solid var(--line);padding:16px 0}.card:first-child{border-top:0}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .name{font-weight:700;font-size:17px}
+  .req{color:var(--dim);margin:6px 0}
+  .badge{display:inline-block;font:12px ui-monospace,monospace;font-weight:700;padding:3px 9px;border-radius:999px}
+  .b-issued{background:#102c1d;color:var(--grn)} .b-denied{background:#331319;color:var(--red)}
+  .b-none{background:#241f33;color:var(--dim)} .b-un{background:#2a2410;color:var(--amber)}
+  .meta{color:var(--faint);font-size:12px;font-family:ui-monospace,monospace;margin-top:6px;word-break:break-all}
+  .why{color:var(--dim);font-size:13px;margin-top:8px;border-left:2px solid var(--line);padding-left:10px}
+  .counts{display:flex;gap:16px;color:var(--dim);font-size:13px;font-family:ui-monospace,monospace;margin-top:4px}
+  footer{color:var(--faint);font-size:13px;border-top:1px solid var(--line);padding-top:18px;margin-top:30px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Merit<i>.</i> a pass you earn</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="net">GenLayer Asimov</span>
+      <button id="connect">Connect wallet</button>
+    </div>
+  </header>
+
+  <h1>A pass earned by a verified public action, not a self-claim.</h1>
+  <p class="lead">An organiser opens a program with a requirement and one public page that establishes
+    who qualifies. You claim your own pass, and the contract fetches that page and a round of GenLayer
+    validators decides whether your address meets the requirement. Only then is the pass issued. Other
+    contracts read <b>has_pass</b> to gate a fair airdrop, mint or vote on verified action, not a
+    self-report or a farmable snapshot.</p>
+
+  <h2>Open a program</h2>
+  <section>
+    <label>Program name</label>
+    <input id="pname" placeholder="Project Orbit contributor pass" />
+    <label>Requirement (what qualifies an address)</label>
+    <textarea id="req" placeholder="The claiming address is listed as an accepted contributor on the page."></textarea>
+    <label>Source URL (the public page that establishes who qualifies)</label>
+    <input id="purl" placeholder="https://…" />
+    <div class="actions">
+      <button class="primary" id="open">Open program</button>
+      <span class="muted">You are bound as the organiser. The requirement and source cannot be edited later.</span>
+    </div>
+    <div class="status" id="ostatus"></div>
+  </section>
+
+  <h2>Programs</h2>
+  <div class="counts" id="counts"></div>
+  <section id="list"><div class="muted">Reading programs from chain…</div></section>
+
+  <footer>
+    Contract: <a id="exp" href="#" target="_blank" rel="noopener">on the Asimov explorer</a> ·
+    <a href="https://github.com/JspIIV/merit" target="_blank" rel="noopener">source</a> ·
+    reads need no wallet; opening a program and claiming a pass are transactions on GenLayer Asimov.
+  </footer>
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/genlayer-js@1.1.8";
+import { testnetAsimov } from "https://esm.sh/genlayer-js@1.1.8/chains";
+
+const CONTRACT = "0x137129dEB470FfC721548F48B537200eB605D55e";
+const CHAIN_ID_HEX = "0x107d";
+const CHAIN_PARAMS = { chainId: CHAIN_ID_HEX, chainName: "GenLayer Asimov",
+  nativeCurrency:{name:"GEN",symbol:"GEN",decimals:18},
+  rpcUrls:["https://rpc-asimov.genlayer.com"], blockExplorerUrls:["https://explorer-asimov.genlayer.com"] };
+const EXPLORER = "https://explorer-asimov.genlayer.com";
+const ROUND_GAS = 8_000_000n, GAS_CAP = 95_000_000n, WALLET_COMPUTES=["nonce","type","chainId"];
+
+const reader = createClient({ chain: testnetAsimov });
+let account = null;
+const $ = id => document.getElementById(id);
+const short = a => a?`${String(a).slice(0,6)}…${String(a).slice(-4)}`:"";
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+const transient = e => /revert|-32005|-32006|-32603|at capacity|gas rate|rate limit|backpressure|fetch failed|timeout|502|503|429/i
+  .test(String(e?.details||e?.shortMessage||e?.message||e));
+$("exp").href = EXPLORER + "/address/" + CONTRACT;
+
+async function read(fn, args=[]) {
+  for (let i=1;i<=4;i++){ try { const raw = await reader.readContract({address:CONTRACT,functionName:fn,args});
+      try{return JSON.parse(raw)}catch{return raw} } catch(e){ if(!transient(e))throw e; await sleep(1500*i); } }
+}
+function walletFriendly(p){ return { ...p, request: async payload=>{
+  if(payload?.method!=="eth_sendTransaction") return p.request(payload);
+  const tx={...(payload.params?.[0]??{})}; for(const k of WALLET_COMPUTES) delete tx[k];
+  if(BigInt(tx.gas??0)<ROUND_GAS) tx.gas="0x"+ROUND_GAS.toString(16);
+  if(BigInt(tx.gas??0)>GAS_CAP) tx.gas="0x"+GAS_CAP.toString(16);
+  try{ return await p.request({method:"eth_sendTransaction",params:[tx]}); }
+  catch(err){ if(err?.code!==-32602||tx.gasPrice===undefined) throw err; const t={...tx}; delete t.gasPrice;
+    return p.request({method:"eth_sendTransaction",params:[t]}); } } }; }
+async function useGenLayer(){ const cur=await window.ethereum.request({method:"eth_chainId"});
+  if(String(cur).toLowerCase()===CHAIN_ID_HEX) return;
+  try{ await window.ethereum.request({method:"wallet_switchEthereumChain",params:[{chainId:CHAIN_ID_HEX}]}); }
+  catch(err){ if(err&&(err.code===4902||err.code===-32603)){ await window.ethereum.request({method:"wallet_addEthereumChain",params:[CHAIN_PARAMS]}); return; } throw err; } }
+function client(){ return createClient({ chain: testnetAsimov, account, provider: walletFriendly(window.ethereum) }); }
+async function ensureWallet(){ if(!window.ethereum) throw new Error("No browser wallet found. Reading works without one; opening a program and claiming need MetaMask on GenLayer Asimov.");
+  if(!account){ const a=await window.ethereum.request({method:"eth_requestAccounts"}); account=a[0]; $("connect").textContent=short(account); } await useGenLayer(); }
+$("connect").onclick=()=>ensureWallet().then(loadList).catch(e=>alert(e.message||e));
+
+async function sendWrite(fn, args){
+  const c=client();
+  for(let attempt=1;;attempt++){ try{ return await c.writeContract({address:CONTRACT,functionName:fn,args,value:0n}); }
+    catch(e){ if(!transient(e)||attempt>=6) throw e; await sleep(4000*attempt); } }
+}
+
+/* ---- open program ---- */
+$("open").onclick = async () => {
+  try {
+    await ensureWallet();
+    const name=$("pname").value.trim(), req=$("req").value.trim(), url=$("purl").value.trim();
+    if(!name){ $("ostatus").textContent="Give the program a name."; return; }
+    if(!req){ $("ostatus").textContent="State the requirement."; return; }
+    if(!/^https?:\/\//.test(url)){ $("ostatus").textContent="Give an http(s) source URL."; return; }
+    $("ostatus").textContent="Opening… approve it in your wallet.";
+    await sendWrite("open_program",[name,req,url]);
+    $("ostatus").textContent="Program opened. Anyone can now claim their pass below.";
+    $("pname").value=""; $("req").value=""; $("purl").value="";
+    await sleep(4000); await loadList();
+  } catch(e){ $("ostatus").textContent="Open failed: "+(e?.shortMessage||e?.message||e); }
+};
+
+/* ---- claim ---- */
+async function claim(pid){
+  const el=$("c-"+pid);
+  try{
+    await ensureWallet();
+    if(el) el.textContent="Claiming…";
+    const before=JSON.stringify(await read("get_claim",[String(pid),account]));
+    await sendWrite("claim",[String(pid)]);
+    for(let i=0;i<90;i++){ await sleep(4000);
+      const now=await read("get_claim",[String(pid),account]);
+      if(el) el.textContent=`Round running… ${(i+1)*4}s`;
+      if(JSON.stringify(now)!==before){ await loadList(); return; } }
+    if(el) el.textContent="Still settling; reload in a minute.";
+  }catch(e){ if(el) el.textContent="Claim failed: "+(e?.shortMessage||e?.message||e); }
+}
+
+/* ---- list ---- */
+function passBadge(status){
+  if(status==="ISSUED") return `<span class="badge b-issued">PASS ISSUED</span>`;
+  if(status==="DENIED") return `<span class="badge b-denied">DENIED</span>`;
+  if(status==="UNRESOLVED") return `<span class="badge b-un">UNREADABLE</span>`;
+  return `<span class="badge b-none">NOT CLAIMED</span>`;
+}
+async function loadList(){
+  const size = await read("size",[]).catch(()=>null);
+  if(size) $("counts").textContent = `${size.programs} programs · ${size.issued} passes issued · ${size.denied} denied`;
+  const data = await read("page",["0","30"]).catch(()=>null);
+  const items = (data && data.items) || [];
+  if(!items.length){ $("list").innerHTML='<div class="muted">No programs yet. Open one above.</div>'; return; }
+  const mine = {};
+  if(account){ for(const p of items){ try{ mine[p.id]=await read("get_claim",[String(p.id),account]); }catch{} } }
+  $("list").innerHTML = items.map(p=>{
+    const c = account ? mine[p.id] : null;
+    const status = (c && c.exists!==false) ? c.status : "NONE";
+    const claim = (c && c.exists!==false) ? JSON.parse(JSON.stringify(c)) : null;
+    const claimBtn = account
+      ? (status==="ISSUED" ? "" : `<div class="actions"><button id="c-${esc(p.id)}" data-id="${esc(p.id)}" class="claimbtn primary">${status==="NONE"?"Claim your pass":"Try again"}</button></div>`)
+      : `<div class="muted">Connect a wallet to claim your pass.</div>`;
+    return `<div class="card">
+      <div class="row">${account?passBadge(status):""}<span class="name">${esc(p.name)}</span></div>
+      <div class="req">${esc(p.requirement)}</div>
+      <div class="meta">source: <a href="${esc(p.source_url)}" target="_blank" rel="noopener">${esc(p.source_url)}</a></div>
+      <div class="meta">by ${esc((p.organiser||"").slice(0,10))}… · #${esc(p.id)} · ${esc(p.issued)} issued · ${esc(p.denied)} denied</div>
+      ${claim&&claim.reason?`<div class="why"><b>${esc(claim.decision)}</b> — ${esc(claim.reason)}${claim.quote?`<br><span class="muted">“${esc(claim.quote)}”</span>`:""}</div>`:""}
+      ${claimBtn}
+    </div>`; }).join("");
+  document.querySelectorAll(".claimbtn").forEach(btn=>btn.onclick=()=>claim(btn.getAttribute("data-id")));
+}
+
+loadList();
+</script>
+</body>
+</html>

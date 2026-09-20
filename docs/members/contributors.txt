@@ -1,0 +1,11 @@
+Project Orbit  Accepted Contributors
+
+The addresses below are recognized contributors to Project Orbit and are eligible
+for the contributor pass. This list is maintained by the project maintainers.
+
+0x80519c53f10d731e4ff83a7d9acd69cf98da6258   core, merged 12 pull requests
+0x1bfe607ad53ca8b2b638630865466e7f386a9b80   documentation
+0xbdb591cddd787956a4fb17a8f4c325366525efd2   design
+
+Any address not listed above has not been accepted as a contributor and does not
+qualify for the pass.

@@ -1,0 +1,16 @@
+{
+  "name": "merit",
+  "version": "1.0.0",
+  "description": "**An access pass earned by a verified public action, not a self-claim.** A fair-allowlist primitive for GenLayer.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module"
+}

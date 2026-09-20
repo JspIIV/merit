@@ -1,0 +1,7 @@
+Allowlists are the soft underbelly of every airdrop, mint and grant round: a form anybody can fill in, or a snapshot anybody can farm. The reward goes to whoever games the list best, and the people it was for get diluted.
+
+Merit issues the pass from the action itself. open_program(name, requirement, source_url) sets a requirement in plain words and one public page that establishes who qualifies; the organiser is the caller and cannot edit it later. claim(program_id) checks the caller's own address: the contract fetches the page and a GenLayer round decides whether it shows this address meeting the requirement. QUALIFIED issues the pass, NOT_QUALIFIED denies it, UNREADABLE issues nothing. Other contracts read has_pass(program_id, address) to gate a fair airdrop or mint.
+
+You can only claim for yourself, and the deciding evidence is the page the contract fetched.
+
+Proven on Asimov: an address listed on the source page is QUALIFIED and ISSUED; one not listed is NOT_QUALIFIED and DENIED.
